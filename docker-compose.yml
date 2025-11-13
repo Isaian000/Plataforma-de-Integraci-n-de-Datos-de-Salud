@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # Dgraph Zero - Coordina el cluster
+  dgraph-zero:
+    image: dgraph/dgraph:latest
+    container_name: dgraph-zero
+    ports:
+      - "5080:5080"
+      - "6080:6080"
+    networks:
+      - dgraph-network
+    command: dgraph zero --my=dgraph-zero:5080
+    restart: unless-stopped
+    volumes:
+      - dgraph-zero-data:/dgraph
+
+  # Dgraph Alpha - Servidor principal
+  dgraph-alpha:
+    image: dgraph/dgraph:latest
+    container_name: dgraph-alpha
+    ports:
+      - "8080:8080"
+      - "9080:9080"
+    networks:
+      - dgraph-network
+    command: dgraph alpha --my=dgraph-alpha:7080 --zero=dgraph-zero:5080 --security whitelist=0.0.0.0/0
+    restart: unless-stopped
+    depends_on:
+      - dgraph-zero
+    volumes:
+      - dgraph-alpha-data:/dgraph
+
+  # Dgraph Ratel - Interfaz gráfica (opcional)
+  dgraph-ratel:
+    image: dgraph/ratel:latest
+    container_name: dgraph-ratel
+    ports:
+      - "8000:8000"
+    networks:
+      - dgraph-network
+    restart: unless-stopped
+
+networks:
+  dgraph-network:
+    driver: bridge
+
+volumes:
+  dgraph-zero-data:
+  dgraph-alpha-data:

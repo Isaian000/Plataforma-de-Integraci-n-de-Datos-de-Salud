@@ -1,0 +1,302 @@
+# Schema de Dgraph para la Plataforma de Integración de Datos de Salud
+# Este esquema define los tipos de nodos y relaciones para el grafo de datos médicos
+
+# =============================================================================
+# TIPOS DE NODOS (NODES)
+# =============================================================================
+
+# Tipo: Paciente
+# Representa a los pacientes en el sistema de salud
+type Paciente {
+  paciente.id
+  paciente.nombre
+  paciente.apellido
+  paciente.fecha_nacimiento
+  paciente.genero
+  paciente.tipo_sangre
+  paciente.email
+  paciente.telefono
+  paciente.direccion
+  paciente.ciudad
+  paciente.codigo_postal
+  # Relaciones
+  paciente.historial_medico
+  paciente.citas
+  paciente.recetas
+  paciente.alergias
+}
+
+# Tipo: Doctor
+# Representa a los médicos del sistema
+type Doctor {
+  doctor.id
+  doctor.nombre
+  doctor.apellido
+  doctor.especialidad
+  doctor.email
+  doctor.telefono
+  doctor.numero_licencia
+  doctor.años_experiencia
+  # Relaciones
+  doctor.citas
+  doctor.pacientes_tratados
+  doctor.hospital
+}
+
+# Tipo: Hospital
+# Representa las instituciones médicas
+type Hospital {
+  hospital.id
+  hospital.nombre
+  hospital.direccion
+  hospital.ciudad
+  hospital.telefono
+  hospital.nivel_atencion
+  hospital.capacidad_camas
+  hospital.tiene_urgencias
+  # Relaciones
+  hospital.doctores
+  hospital.departamentos
+}
+
+# Tipo: Cita
+# Representa las citas médicas programadas
+type Cita {
+  cita.id
+  cita.fecha_hora
+  cita.motivo
+  cita.estado
+  cita.duracion_minutos
+  cita.tipo_consulta
+  cita.notas
+  # Relaciones
+  cita.paciente
+  cita.doctor
+  cita.diagnosticos
+  cita.tratamientos
+}
+
+# Tipo: HistorialMedico
+# Representa el historial médico del paciente
+type HistorialMedico {
+  historial.id
+  historial.fecha_creacion
+  historial.condiciones_cronicas
+  historial.cirugias_previas
+  historial.hospitalizaciones
+  historial.vacunas
+  # Relaciones
+  historial.paciente
+  historial.diagnosticos
+}
+
+# Tipo: Diagnostico
+# Representa diagnósticos médicos
+type Diagnostico {
+  diagnostico.id
+  diagnostico.codigo_icd10
+  diagnostico.nombre
+  diagnostico.descripcion
+  diagnostico.fecha_diagnostico
+  diagnostico.gravedad
+  # Relaciones
+  diagnostico.paciente
+  diagnostico.doctor
+  diagnostico.cita
+  diagnostico.tratamientos
+}
+
+# Tipo: Tratamiento
+# Representa tratamientos médicos aplicados
+type Tratamiento {
+  tratamiento.id
+  tratamiento.nombre
+  tratamiento.descripcion
+  tratamiento.fecha_inicio
+  tratamiento.fecha_fin
+  tratamiento.estado
+  # Relaciones
+  tratamiento.diagnostico
+  tratamiento.medicamentos
+}
+
+# Tipo: Medicamento
+# Representa medicamentos prescritos
+type Medicamento {
+  medicamento.id
+  medicamento.nombre_comercial
+  medicamento.principio_activo
+  medicamento.dosis
+  medicamento.via_administracion
+  medicamento.frecuencia
+  # Relaciones
+  medicamento.recetas
+  medicamento.contraindicaciones
+}
+
+# Tipo: Receta
+# Representa recetas médicas
+type Receta {
+  receta.id
+  receta.fecha_emision
+  receta.duracion_dias
+  receta.instrucciones
+  receta.estado
+  # Relaciones
+  receta.paciente
+  receta.doctor
+  receta.medicamentos
+}
+
+# Tipo: Alergia
+# Representa alergias de los pacientes
+type Alergia {
+  alergia.id
+  alergia.nombre
+  alergia.tipo
+  alergia.gravedad
+  alergia.fecha_deteccion
+  alergia.reaccion
+  # Relaciones
+  alergia.paciente
+}
+
+# Tipo: Departamento
+# Representa departamentos hospitalarios
+type Departamento {
+  departamento.id
+  departamento.nombre
+  departamento.especialidad
+  departamento.extension
+  # Relaciones
+  departamento.hospital
+  departamento.doctores
+}
+
+# =============================================================================
+# DEFINICIÓN DE PREDICADOS
+# =============================================================================
+
+# Predicados de Paciente
+paciente.id: string @index(exact) .
+paciente.nombre: string @index(term, fulltext) .
+paciente.apellido: string @index(term, fulltext) .
+paciente.fecha_nacimiento: datetime @index(year) .
+paciente.genero: string @index(exact) .
+paciente.tipo_sangre: string @index(exact) .
+paciente.email: string @index(exact) @upsert .
+paciente.telefono: string @index(exact) .
+paciente.direccion: string .
+paciente.ciudad: string @index(term) .
+paciente.codigo_postal: string @index(exact) .
+paciente.historial_medico: [uid] @reverse .
+paciente.citas: [uid] @reverse @count .
+paciente.recetas: [uid] @reverse @count .
+paciente.alergias: [uid] @reverse .
+
+# Predicados de Doctor
+doctor.id: string @index(exact) .
+doctor.nombre: string @index(term, fulltext) .
+doctor.apellido: string @index(term, fulltext) .
+doctor.especialidad: string @index(exact, term) .
+doctor.email: string @index(exact) @upsert .
+doctor.telefono: string @index(exact) .
+doctor.numero_licencia: string @index(exact) @upsert .
+doctor.años_experiencia: int @index(int) .
+doctor.citas: [uid] @reverse @count .
+doctor.pacientes_tratados: [uid] @count .
+doctor.hospital: uid @reverse .
+
+# Predicados de Hospital
+hospital.id: string @index(exact) .
+hospital.nombre: string @index(term, fulltext) .
+hospital.direccion: string .
+hospital.ciudad: string @index(term) .
+hospital.telefono: string @index(exact) .
+hospital.nivel_atencion: string @index(exact) .
+hospital.capacidad_camas: int @index(int) .
+hospital.tiene_urgencias: bool @index(bool) .
+hospital.doctores: [uid] @reverse @count .
+hospital.departamentos: [uid] @reverse .
+
+# Predicados de Cita
+cita.id: string @index(exact) .
+cita.fecha_hora: datetime @index(hour) .
+cita.motivo: string @index(fulltext) .
+cita.estado: string @index(exact) .
+cita.duracion_minutos: int .
+cita.tipo_consulta: string @index(exact) .
+cita.notas: string .
+cita.paciente: uid @reverse .
+cita.doctor: uid @reverse .
+cita.diagnosticos: [uid] @reverse .
+cita.tratamientos: [uid] @reverse .
+
+# Predicados de HistorialMedico
+historial.id: string @index(exact) .
+historial.fecha_creacion: datetime @index(year) .
+historial.condiciones_cronicas: [string] .
+historial.cirugias_previas: [string] .
+historial.hospitalizaciones: [string] .
+historial.vacunas: [string] .
+historial.paciente: uid @reverse .
+historial.diagnosticos: [uid] @reverse .
+
+# Predicados de Diagnostico
+diagnostico.id: string @index(exact) .
+diagnostico.codigo_icd10: string @index(exact) .
+diagnostico.nombre: string @index(term, fulltext) .
+diagnostico.descripcion: string @index(fulltext) .
+diagnostico.fecha_diagnostico: datetime @index(day) .
+diagnostico.gravedad: string @index(exact) .
+diagnostico.paciente: uid @reverse .
+diagnostico.doctor: uid @reverse .
+diagnostico.cita: uid @reverse .
+diagnostico.tratamientos: [uid] @reverse @count .
+
+# Predicados de Tratamiento
+tratamiento.id: string @index(exact) .
+tratamiento.nombre: string @index(term, fulltext) .
+tratamiento.descripcion: string @index(fulltext) .
+tratamiento.fecha_inicio: datetime @index(day) .
+tratamiento.fecha_fin: datetime @index(day) .
+tratamiento.estado: string @index(exact) .
+tratamiento.diagnostico: uid @reverse .
+tratamiento.medicamentos: [uid] @reverse .
+
+# Predicados de Medicamento
+medicamento.id: string @index(exact) .
+medicamento.nombre_comercial: string @index(term, fulltext) .
+medicamento.principio_activo: string @index(term, fulltext) .
+medicamento.dosis: string .
+medicamento.via_administracion: string @index(exact) .
+medicamento.frecuencia: string .
+medicamento.recetas: [uid] @reverse @count .
+medicamento.contraindicaciones: [string] .
+
+# Predicados de Receta
+receta.id: string @index(exact) .
+receta.fecha_emision: datetime @index(day) .
+receta.duracion_dias: int .
+receta.instrucciones: string .
+receta.estado: string @index(exact) .
+receta.paciente: uid @reverse .
+receta.doctor: uid @reverse .
+receta.medicamentos: [uid] @reverse .
+
+# Predicados de Alergia
+alergia.id: string @index(exact) .
+alergia.nombre: string @index(term, fulltext) .
+alergia.tipo: string @index(exact) .
+alergia.gravedad: string @index(exact) .
+alergia.fecha_deteccion: datetime @index(year) .
+alergia.reaccion: string .
+alergia.paciente: uid @reverse .
+
+# Predicados de Departamento
+departamento.id: string @index(exact) .
+departamento.nombre: string @index(term, fulltext) .
+departamento.especialidad: string @index(exact) .
+departamento.extension: string .
+departamento.hospital: uid @reverse .
+departamento.doctores: [uid] @reverse .

@@ -1,0 +1,25 @@
+# Dependencias de Python para la Plataforma de Integración de Datos de Salud
+
+# Base de datos NoSQL documental
+pymongo>=4.0.0
+
+# Base de datos columnar distribuida
+cassandra-driver>=3.25.0
+
+# Base de datos de grafos
+pydgraph>=21.3.0
+
+# Generación de datos de prueba
+faker>=20.0.0
+
+# Análisis de datos (opcional)
+pandas>=1.5.0
+
+# Visualización (opcional)
+matplotlib>=3.6.0
+
+# Manejo de fechas
+python-dateutil>=2.8.0
+
+# Variables de entorno
+python-dotenv>=1.0.0
